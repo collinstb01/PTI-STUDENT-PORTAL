@@ -2,6 +2,9 @@ const user = require("../schemas/User");
 const receipt = require("../schemas/Receipt");
 const bcrypt = require("bcryptjs");
 const { default: mongoose } = require("mongoose");
+const stripe = require("stripe")(
+  "sk_test_51LqkpDBf5tVbYaLvaLMz8RsfXhOdaCFSst29SHzTL4nDUlQYtdh4wQtpFCaOdwVOTumXFP6ch2QOqGUA9GfDKhXh00xKcKrD98"
+);
 
 const sign_up = async (req, res) => {
   const {
@@ -106,7 +109,8 @@ const push_receipts = async (req, res) => {
       (val) =>
         val.status == `${user_data[0].state_of_origin?.abbr}` ||
         val.status == "all" ||
-        val.status == `${user_data[0].dept}`
+        val.status == `${user_data[0].dept}` ||
+        val.status == `${user_data[0].city}`
     );
 
     const new_data = await user.updateOne(
@@ -129,8 +133,46 @@ const push_receipts = async (req, res) => {
   }
 };
 
+const payment = async (req, res) => {
+  const { items, id } = req.body;
+
+  console.log(items);
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      line_items: items.map((item) => {
+        return {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: item.receipt_name,
+            },
+            unit_amount: item.amount,
+          },
+          quantity: 1,
+        };
+      }),
+      success_url: `https://www.youtube.com/watch?v=1r-F3FIONl8&t=815s`,
+      cancel_url: `https://www.youtube.com/watch?v=1r-F3FIONl8&t=815s`,
+    });
+
+    // console.log(await receipt.find());
+    const userr = await user.findOne({ _id: id });
+
+    let some = userr[0].filter((item) => item._id === id);
+
+    console.log(some);
+    console.log(session.url);
+    res.json({ url: session.url });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+};
+
 module.exports = {
   sign_up,
   sign_in,
   push_receipts,
+  payment,
 };

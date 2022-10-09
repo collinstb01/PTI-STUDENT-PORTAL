@@ -11,6 +11,9 @@ const Hostels = new Schema({
   available: Boolean,
   occupants: Array,
   no_of_occupants: Number,
+  sex: String,
+  location: String,
+  valid_occupant: Number,
 });
 
 const hostels = mongoose.model("hostels", Hostels);

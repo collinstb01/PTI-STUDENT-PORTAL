@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 
 const User = require("./routes/User");
 const Receipt = require("./routes/Receipt");
+const Hostels = require("./routes/Hostel");
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(bodyParser.json({ limit: "30mb", extended: true }));
 
 app.use("/api", User);
 app.use("/api", Receipt);
+app.use("/api", Hostels);
 
 app.use("/", async (req, res) => {
   res.send("App running");

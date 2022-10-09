@@ -1,7 +1,7 @@
 const user = require("../schemas/User");
 const receipt = require("../schemas/Receipt");
 const bcrypt = require("bcryptjs");
-const { default: mongoose } = require("mongoose");
+const { default: mongoose, Mongoose } = require("mongoose");
 const stripe = require("stripe")(
   "sk_test_51LqkpDBf5tVbYaLvaLMz8RsfXhOdaCFSst29SHzTL4nDUlQYtdh4wQtpFCaOdwVOTumXFP6ch2QOqGUA9GfDKhXh00xKcKrD98"
 );
@@ -104,7 +104,6 @@ const push_receipts = async (req, res) => {
     const receipts = await receipt.find();
     const user_data = await user.find({ _id: id });
 
-    console.log(user_data);
     const filtered_receipt = receipts.filter(
       (val) =>
         val.status == `${user_data[0].state_of_origin?.abbr}` ||
@@ -113,20 +112,21 @@ const push_receipts = async (req, res) => {
         val.status == `${user_data[0].city}`
     );
 
-    const new_data = await user.updateOne(
-      { _id: id },
-      {
-        $addToSet: {
-          receipts: filtered_receipt,
-        },
-      }
-    );
+    let element;
+    for (let i = 0; i < filtered_receipt.length; i++) {
+      element = filtered_receipt[i];
 
-    console.log(filtered_receipt);
+      new_data = await user.updateOne(
+        { _id: id },
+        {
+          $addToSet: {
+            receipts: element,
+          },
+        }
+      );
+    }
 
-    res
-      .status(200)
-      .json({ message: "Successfully Gotten", filtered_receipt, new_data });
+    res.status(200).json({ message: "Successfully Pushed" });
   } catch (error) {
     res.json(error);
     console.log(error);
@@ -136,7 +136,6 @@ const push_receipts = async (req, res) => {
 const payment = async (req, res) => {
   const { items, id } = req.body;
 
-  console.log(items);
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -157,12 +156,6 @@ const payment = async (req, res) => {
       cancel_url: `https://www.youtube.com/watch?v=1r-F3FIONl8&t=815s`,
     });
 
-    // console.log(await receipt.find());
-    const userr = await user.findOne({ _id: id });
-
-    let some = userr[0].filter((item) => item._id === id);
-
-    console.log(some);
     console.log(session.url);
     res.json({ url: session.url });
   } catch (e) {
@@ -170,9 +163,27 @@ const payment = async (req, res) => {
   }
 };
 
+const change_paid_status = async (req, res) => {
+  const { items, id } = req.body;
+
+  try {
+    const userr = await user.updateOne(
+      {
+        _id: id,
+        "receipts._id": mongoose.Types.ObjectId(items[0]._id),
+      },
+      {
+        $set: { "receipts.$.paid": true },
+      }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+};
 module.exports = {
   sign_up,
   sign_in,
   push_receipts,
   payment,
+  change_paid_status,
 };

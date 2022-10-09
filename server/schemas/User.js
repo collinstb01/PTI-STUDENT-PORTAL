@@ -13,9 +13,7 @@ const User = new Schema({
   dept: String,
   password: String,
   home_address: String,
-  receipts: {
-    type: Array,
-  },
+  receipts: Array,
   session: String,
   hostel_name: String,
   hostel_block: String,

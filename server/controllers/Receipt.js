@@ -18,6 +18,19 @@ const create_receipt = async (req, res) => {
   } catch (error) {}
 };
 
+const get_receipts = async (req, res) => {
+  try {
+    const receipts = await receipt.find();
+
+    return res
+      .status(200)
+      .json({ message: "Successfully Gotten all Receipt", receipts });
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+};
+
 module.exports = {
   create_receipt,
+  get_receipts,
 };

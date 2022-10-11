@@ -177,7 +177,7 @@ const change_paid_status = async (req, res) => {
         $set: { "receipts.$.paid": true },
       }
     );
-    let pdf = some();
+    let pdf = await some();
     console.log(pdf);
 
     await user.updateMany(

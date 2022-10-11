@@ -5,6 +5,7 @@ const { default: mongoose, Mongoose } = require("mongoose");
 const stripe = require("stripe")(
   "sk_test_51LqkpDBf5tVbYaLvaLMz8RsfXhOdaCFSst29SHzTL4nDUlQYtdh4wQtpFCaOdwVOTumXFP6ch2QOqGUA9GfDKhXh00xKcKrD98"
 );
+const { htmlToPdf } = require("convert-to-pdf");
 
 const sign_up = async (req, res) => {
   const {
@@ -167,7 +168,7 @@ const change_paid_status = async (req, res) => {
   const { items, id } = req.body;
 
   try {
-    const userr = await user.updateOne(
+    await user.updateOne(
       {
         _id: id,
         "receipts._id": mongoose.Types.ObjectId(items[0]._id),
@@ -176,10 +177,73 @@ const change_paid_status = async (req, res) => {
         $set: { "receipts.$.paid": true },
       }
     );
+    let pdf = some();
+    console.log(pdf);
+
+    await user.updateMany(
+      {
+        _id: id,
+        "receipts._id": mongoose.Types.ObjectId(items[0]._id),
+      },
+      {
+        $set: { "receipts.$.pdf_file": pdf },
+      },
+      { upsert: false, multi: true }
+    );
+    return res.status(200).json({ message: "Successful" });
   } catch (error) {
     console.log(error);
   }
 };
+
+async function some(req, res) {
+  const options = {
+    pdf: {
+      writeStream: res, // http response as writable stream
+    },
+    // template options
+    template: {
+      type: "CONTENT", // If the template in in the form of a file
+      content: `
+    <!DOCTYPE html>
+      <html>
+      <head>
+          <meta charset='utf-8'>
+          <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+          <title>Page Title</title>
+          <meta name='viewport' content='width=device-width, initial-scale=1'>
+      </head>
+      <body>
+          <h1>{{HELLO}} {{name}}!</h1>
+      </body>
+    </html>
+`,
+      css: {
+        type: "CONTENT",
+        content: `
+        h1 {
+          color: #f00;
+        }
+      `,
+      },
+    },
+    // data to render on the template
+    data: {
+      name: "John Doe",
+    },
+    // additional data, used here as translations key/value
+    additionalData: {
+      resourceType: "CONTENT",
+      data: {
+        HELLO: "Hej",
+      },
+    },
+  };
+  let pdf = await htmlToPdf(options);
+  return pdf;
+  // Here PDF will be piped to the specified writable stream
+}
+
 module.exports = {
   sign_up,
   sign_in,

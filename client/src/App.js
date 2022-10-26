@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Route, Routes } from "react-router-dom";
 
 import "./styles/style.css";
@@ -8,6 +8,8 @@ import Receipt from "./pages/Receipt/Hostel";
 import Hostel from "./pages/Hostel/Hostel";
 
 function App() {
+  const [user, setUser] = useState("");
+
   return (
     <div>
       <Routes>
@@ -16,7 +18,7 @@ function App() {
         {/* <Route path="*" element={<Error404 />} /> */}
         <Route path="/listReceipt" element={<Receipt />} />
         {/* <Route path="*" element={<Error404 />} /> */}
-        <Route path="/hostel" element={<Hostel />} />
+        <Route path="/hostel" element={<Hostel />} />{" "}
       </Routes>
     </div>
   );

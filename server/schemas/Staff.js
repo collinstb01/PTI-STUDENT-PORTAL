@@ -10,6 +10,6 @@ const Staff = new Schema({
   role: String,
 });
 
-const staff = mongoose.model("students", Staff);
+const staff = mongoose.model("staffs", Staff);
 
 module.exports = staff;

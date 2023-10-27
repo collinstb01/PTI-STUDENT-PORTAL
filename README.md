@@ -9,3 +9,5 @@ I am building a student portal where students can signup with certain data and t
 
 IMPORTANT NOTICE FOR FRONTEND
 I am yet to work on the frontend because of my busy schedule
+
+NOTICE: THE PROJECT IS INCOMPLETE (20% DONE) !!!!
